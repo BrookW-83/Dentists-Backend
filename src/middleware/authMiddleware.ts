@@ -15,7 +15,7 @@ const authMiddleware = (requiredRoles: string[]) => {
     const authHeader = req.header('Authorization');
 
     if (!authHeader) {
-        return res.status(401).json({ message: 'Token is required' });
+        return res.status(401).json({ message: 'Token is required', success: false });
     }
     const token = authHeader.split(' ')[1];
    
@@ -26,13 +26,13 @@ const authMiddleware = (requiredRoles: string[]) => {
         const hasRequiredRole = requiredRoles.some(role => decoded.role.includes(role)) 
 
         if (!hasRequiredRole) {
-            return res.status(403).json({ message: 'Unauthorized' });
+            return res.status(403).json({ message: 'Unauthorized', success: false });
         }
 
         next();
 
     } catch {
-        return res.status(401).json({ message: 'Invalid token' });
+        return res.status(401).json({ message: 'Invalid token', success:false });
     }
     } 
 };

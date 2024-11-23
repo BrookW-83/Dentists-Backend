@@ -14,10 +14,10 @@ class authController {
       await sql`INSERT INTO admin (email, full_name, phone_number, profile_image, password, role, bio) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *,
             ${email}, ${fullName}, ${phoneNumber}, ${profileImage}, ${hashedPassword}, ${role}, ${bio}`;
 
-      return res.status(201).json({ message: "User created successfully" });
+      return res.status(201).json({ message: "User created successfully", success: true });
     } catch (error) {
       console.error("Error creating user:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: "Internal Server Error", success: false });
     }
   }
 
@@ -29,16 +29,16 @@ class authController {
       if (!email || !password) {
         return res
           .status(400)
-          .json({ message: "Email and password are required" });
+          .json({ message: "Email and password are required", success: false });
       }
 
       const user = await sql` SELECT * FROM admin WHERE email = ${email}`;
       if (user.rows.length === 0) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: "User not found", success: false });
       }
       const isPasswordValid = await compare(password, user.rows[0].password);
       if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid password" });
+        return res.status(401).json({ message: "Invalid password", success: false });
       }
 
       const token = jwt.sign(
@@ -47,9 +47,9 @@ class authController {
         { expiresIn: "2h" }
       );
 
-      return res.json({ token});
+      return res.json({ token, id: user.rows[0].id, name: user.rows[0].full_name, role: user.rows[0].role, success: true });
     } catch (error) {
-      return res.status(500).json({ message: "Internal Server Error" });
+      return res.status(500).json({ message: "Internal Server Error", success: false });
     }
   }
 }
